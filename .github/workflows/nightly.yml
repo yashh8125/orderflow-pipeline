@@ -1,0 +1,26 @@
+name: Nightly pipeline run
+
+on:
+  schedule:
+    - cron: "30 20 * * *"   # 02:00 IST every day (cron runs in UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Run pipeline (fails the job on a non-zero exit code)
+        run: python -m orderflow.pipeline --generate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports/
