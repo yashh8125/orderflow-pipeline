@@ -1,3 +1,5 @@
+![CI](https://github.com/yashh8125/orderflow-pipeline/actions/workflows/ci.yml/badge.svg)
+
 # OrderFlow: a containerized, CI-tested ETL pipeline
 
 A small data-engineering project with a real DevOps layer. It takes messy e-commerce order data
