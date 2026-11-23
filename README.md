@@ -67,22 +67,4 @@ ruff check . && pytest -q && bandit -r orderflow -q && pip-audit -r requirements
 | Failure handling | Retries on DB startup, logged stack traces, exit code 1 on failure |
 | Cloud | Optional `s3_sync.py` uploads reports to S3 with SSE (least-privilege IAM, `S3_BUCKET` env) |
 
-## Design decisions (good interview material)
 
-- **Why read everything as text?** `dtype=str` means validation, not the CSV parser, decides what is a number or a date.
-- **Why upsert instead of truncate-and-reload?** It's safe to re-run, supports late-arriving corrections and never leaves the table empty.
-- **Why one transaction?** If the orders load fails, the dimension rows roll back too.
-- **Why keep rejects?** In production you must be able to answer "which records did we drop and why?"
-- **Known limitations:** upsert is implemented for SQLite and PostgreSQL only; date formats like `05/03/2025` are ambiguous and need a decision from the data owner (the sample data avoids them); `--incremental` assumes new orders are not back-dated before the previous max date.
-- **Untested here:** the S3 upload and the Docker/Trivy/Actions workflows need your environment (Docker, AWS credentials, a GitHub repo). The Python pipeline, tests, lint and Bandit were run.
-
-## Ideas to extend it (pick one or two)
-1. Add a data-quality gate: fail the run if more than 10% of orders are rejected.
-2. Replace `nightly.yml` with Airflow or cron inside a container.
-3. Add Terraform for the S3 bucket and IAM policy.
-4. Add a Grafana or Metabase container reading from Postgres.
-
-## Resume bullets (use only what you actually built and can explain)
-- Built a containerized ETL pipeline (Python, Pandas, SQLAlchemy, PostgreSQL, Docker Compose) that cleans and validates CSV and nested JSON order data, with idempotent upserts, incremental loads and rejected-record tracking.
-- Designed a star-style warehouse schema and SQL analytics (joins, CTEs, window functions) producing automated revenue, customer and category reports.
-- Implemented CI/CD in GitHub Actions with linting, unit and integration tests, Bandit, pip-audit and Trivy scans, plus scheduled nightly runs; hardened containers (non-root, read-only, dropped capabilities).
